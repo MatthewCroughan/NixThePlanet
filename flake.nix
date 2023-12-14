@@ -3,12 +3,13 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
+    wfvm.url = "git+https://git.m-labs.hk/m-labs/wfvm";
     osx-kvm = {
       url = "github:kholia/OSX-KVM";
       flake = false;
     };
   };
-  outputs = inputs@{ flake-parts, osx-kvm, ... }:
+  outputs = inputs@{ flake-parts, osx-kvm, wfvm, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         flake-parts.flakeModules.easyOverlay
@@ -59,6 +60,12 @@
           makeMsDos622Image = pkgs.callPackage ./makeMsDos622Image {};
           makeWin30Image = pkgs.callPackage ./makeWin30Image {};
           makeWfwg311Image = pkgs.callPackage ./makeWfwg311Image {};
+          makeWindowsImage = { ... }@args: wfvm.lib.makeWindowsImage {
+            windowsImage = (pkgs.fetchtorrent {
+              url = "https://archive.org/download/win-10-21-h-1-english-x-64_20210711/win-10-21-h-1-english-x-64_20210711_archive.torrent";
+              hash = "";
+            }) + "/Win10_21H1_English_x64.iso";
+          } // args;
 #          makeSystem7Image = pkgs.callPackage ./makeSystem7Image {};
         };
         apps = {
@@ -81,6 +88,7 @@
         };
         packages = rec {
           macos-ventura-image = config.legacyPackages.makeDarwinImage {};
+          windows-10-image = config.legacyPackages.makeWindowsImage {};
           msdos622-image = config.legacyPackages.makeMsDos622Image {};
           win30-image = config.legacyPackages.makeWin30Image {};
           wfwg311-image = config.legacyPackages.makeWfwg311Image {};
