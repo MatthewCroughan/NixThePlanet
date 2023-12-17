@@ -60,6 +60,7 @@
           makeWin30Image = pkgs.callPackage ./makeWin30Image {};
           makeWfwg311Image = pkgs.callPackage ./makeWfwg311Image {};
           makeWin98Image = pkgs.callPackage ./makeWin98Image {};
+          makeWin2kImage = pkgs.callPackage ./makeWin2kImage {};
 #          makeSystem7Image = pkgs.callPackage ./makeSystem7Image {};
         };
         apps = {
@@ -83,6 +84,10 @@
             type = "app";
             program = config.packages.win98-image.runScript;
           };
+          win2k = {
+            type = "app";
+            program = config.packages.win2k-image.runScript;
+          };
         };
         packages = rec {
           macos-ventura-image = config.legacyPackages.makeDarwinImage {};
@@ -90,6 +95,7 @@
           win30-image = config.legacyPackages.makeWin30Image {};
           wfwg311-image = config.legacyPackages.makeWfwg311Image {};
           win98-image = config.legacyPackages.makeWin98Image {};
+          win2k-image = config.legacyPackages.makeWin2kImage {};
           #system7-image = config.legacyPackages.makeSystem7Image {};
           #macos-repeatability-test = genOverridenDrvLinkFarm (macos-ventura-image.overrideAttrs { repeatabilityTest = true; }) 3;
           win98-repeatability-test = genOverridenDrvLinkFarm win98-image 100;
