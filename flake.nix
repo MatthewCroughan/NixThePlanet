@@ -98,6 +98,7 @@
           win2k-image = config.legacyPackages.makeWin2kImage {};
           #system7-image = config.legacyPackages.makeSystem7Image {};
           #macos-repeatability-test = genOverridenDrvLinkFarm (macos-ventura-image.overrideAttrs { repeatabilityTest = true; }) 3;
+          win2k-repeatability-test = genOverridenDrvLinkFarm win2k-image 100;
           win98-repeatability-test = genOverridenDrvLinkFarm win98-image 100;
           wfwg311-repeatability-test = genOverridenDrvLinkFarm wfwg311-image 100;
           win30-repeatability-test = genOverridenDrvLinkFarm win30-image 100;
