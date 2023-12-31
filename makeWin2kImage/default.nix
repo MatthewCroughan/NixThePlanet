@@ -1,7 +1,11 @@
-{ fetchurl, runCommand, p7zip, dosbox-x, xvfb-run, x11vnc, imagemagick
+# https://fabulous.systems/posts/2023/07/installing-windows-2000-in-dosbox-x/
+
+{ lib, fetchurl, runCommand, p7zip, dosbox-x, xvfb-run, x11vnc, imagemagick
 , tesseract, expect, vncdo, writeScript, writeShellScript, writeText
 , makeWin98Image, callPackage }:
-{ dosPostInstall ? "", ... }:
+{ dosPostInstall ? "",
+# NTFS not supported in dosbox-x, image builds with it probably won't work
+useNTFS ? false, ... }:
 let
   win98 = makeWin98Image { };
   win2k-installer = fetchurl {
@@ -19,9 +23,9 @@ let
     memsize = 32
 
     [autoexec]
-    imgmount C win98.img
-    imgmount D win2k.iso
-    boot -l C
+    imgmount c win2k.img
+    imgmount d win2k.iso
+    boot -l c
   '';
   tesseractScript = writeShellScript "tesseractScript" ''
     export OMP_THREAD_LIMIT=1
@@ -49,26 +53,62 @@ let
     set debug 5
     set timeout -1
     spawn ${tesseractScript}
-    expect "Show this screen each time"
+    expect "Recycle Bin"
     send_user "\n### WIN98 BOOTED ###\n"
-    exec ${vncdoWrapper} pause 10 key ctrl-esc pause 3 key r
-    expect "Type the name of"
-    exec ${vncdoWrapper} type com pause 1 type mand.com key enter
-    expect "Prompt"
-    exec ${vncdoWrapper} type d: key enter type setup key enter
-    expect "Windows 2000 CD"
+    while { 1 } {
+      exec sleep 10
+      send_user "\n### TRYING TO OPEN WIN2K SETUP ###\n"
+      expect {
+        "Windows 2000 CD" { break }
+        "Prompt" {
+          send_user "\n### OPENING WIN2K SETUP ###\n"
+          exec ${vncdoWrapper} type d: key enter type setup key enter
+        }
+        "Type the name of" {
+          send_user "\n### OPENING COMMAND.COM ###\n"
+          exec ${vncdoWrapper} type com pause 1 type mand.com key enter
+        }
+        "Programs" {
+          send_user "\n### OPENING RUN PROMPT ###\n"
+          exec ${vncdoWrapper} key r
+        }
+        "Internet A" {
+          send_user "\n### OPENING START MENU ###\n"
+          exec ${vncdoWrapper} key ctrl-esc
+        }
+      }
+    }
     exec ${vncdoWrapper} key enter
     expect "Welcome to the Windows 2000"
-    exec ${vncdoWrapper} key enter
+    exec ${vncdoWrapper} key down key enter
     expect "License Agreement"
     exec ${vncdoWrapper} key tab key enter
     expect "Your Product Key"
-    exec ${vncdoWrapper} type rbdc9 pause 1 type vtrc8 pause 1 type d7972 pause 1 type j97jy pause 1 type prvmg pause 1 key enter
-    expect "Preparing to Upgrade to Windows 2000"
+    while { 1 } {
+      send_user "\n### ENTERING PRODUCT KEY ###\n"
+      exec ${vncdoWrapper} type rbdc9 pause 1 type vtrc8 pause 1 type d7972 pause 1 type j97jy pause 1 type prvmg pause 1 key enter
+      expect {
+        "Select Special Options" { break }
+        "Do Windows 2000 Eetup E4" {
+          send_user "\n### RETRYING ENTERING PRODUCT KEY ###\n"
+          exec ${vncdoWrapper} key enter
+          exec ${vncdoWrapper} key tab key tab key tab key tab
+          for {set i 0} {$i < 25} {incr i} {
+            exec ${vncdoWrapper} key bsp
+          }
+        }
+      }
+    }
     exec ${vncdoWrapper} key enter
+    expect "To set up Windows 2000 now, press ENTER."
+    exec ${vncdoWrapper} key enter
+    expect "The following list shows the existing partitions"
+    exec ${vncdoWrapper} key enter
+
     expect "Provide Upgrade Packs"
     exec ${vncdoWrapper} key enter
     expect "File System"
+    ${lib.optionalString useNTFS "exec ${vncdoWrapper} key up"}
     exec ${vncdoWrapper} key enter
     expect "Provide Updated Plug and Play Files"
     exec ${vncdoWrapper} key enter
@@ -76,7 +116,7 @@ let
     exec ${vncdoWrapper} key enter
     expect "Setup found that"
     exec ${vncdoWrapper} key tab key enter
-    expect "Setup now has the information"
+    expect "Setup now has the"
     exec ${vncdoWrapper} key enter
     send_user "\n### WAITING TO BOOT INTO STAGE 2 ###\n"
     expect "Password Creation"
@@ -107,7 +147,7 @@ let
   } ''
     echo "iso src: ${iso}"
     cp --no-preserve=mode ${iso} win2k.iso
-    cp --no-preserve=mode ${win98} win98.img
+    cp --no-preserve=mode ${win98} win2k.img
     runDosboxVnc() {
       xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" dosbox-x -conf ${dosboxConf} || true &
       dosboxPID=$!
@@ -133,7 +173,7 @@ let
       stop turbo on key = false
 
       [autoexec]
-      imgmount C win2k.img
+      imgmount c win2k.img
       ${dosPostInstall}
       exit
     '';
