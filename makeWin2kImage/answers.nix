@@ -9,7 +9,8 @@
 # doesn't ask for a product key, so that has to be added to UserData.ProductID
 # separately. Otherwise, during the install there will be an error asking the
 # user to input it. The unattend.doc file also contains documentation of the
-# different answer file options.
+# different answer file options. A web version of unattend.doc is at
+# https://web.archive.org/web/20040314065512/https://www.microsoft.com/technet/prodtechnol/Windows2000Pro/deploy/unattend/default.mspx
 
 {
   Data = {
