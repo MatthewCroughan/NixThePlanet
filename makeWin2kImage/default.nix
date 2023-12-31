@@ -56,7 +56,7 @@ let
     imgmount c win2k.img -t hdd
     imgmount d win2k.iso
     c:
-    if not exist c:\windows d:\i386\winnt /s:d:\ /u:a:\answers.ini
+    if not exist c:\ntldr d:\i386\winnt /s:d:\ /u:a:\answers.ini
     boot -l c
   '';
   iso = runCommand "win2k.iso" { } ''
