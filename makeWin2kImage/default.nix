@@ -1,36 +1,6 @@
-{ lib, fetchurl, runCommand, p7zip, dosbox-x, xvfb-run, x11vnc, imagemagick
-, tesseract, expect, vncdo, writeScript, writeShellScript, writeText
-, makeWin98Image, callPackage }:
-{ dosPostInstall ? "", answerFile ? writeText "answers.ini"
-  (lib.generators.toINI { } {
-    Data = {
-      AutoPartition = 1;
-      MsDosInitiated = "0";
-      UnattendedInstall = "Yes";
-    };
-    Unattended = {
-      UnattendMode = "FullUnattended";
-      OemSkipEula = "Yes";
-      OemPreinstall = "No";
-      TargetPath = "WINDOWS";
-    };
-    GuiUnattended = {
-      AdminPassword = "*";
-      AutoLogon = "Yes";
-      OEMSkipRegional = 1;
-      TimeZone = 4;
-      OemSkipWelcome = 1;
-    };
-    UserData = {
-      FullName = "user";
-      OrgName = "NixThePlanet";
-      ComputerName = "*";
-      ProductID = "RBDC9-VTRC8-D7972-J97JY-PRVMG";
-    };
-    RegionalSettings.LanguageGroup = 1;
-    Identification.JoinWorkgroup = "WORKGROUP";
-    Networking.InstallDefaultComponents = "Yes";
-  }) }:
+{ lib, fetchurl, runCommand, p7zip, dosbox-x, writeText, callPackage }:
+{ dosPostInstall ? "", answerFile ?
+  writeText "answers.ini" (lib.generators.toINI { } (import ./answers.nix)) }:
 let
   win2k-installer = fetchurl {
     name = "win2k.7z";
@@ -45,10 +15,6 @@ let
   dosboxConf = writeText "dosbox.conf" ''
     [dosbox]
     memsize = 32
-
-    [cpu]
-    turbo=on
-    stop turbo on key = false
 
     [autoexec]
     mount a .
@@ -75,9 +41,9 @@ let
     echo "iso src: ${iso}"
     cp --no-preserve=mode ${iso} win2k.iso
     cp --no-preserve=mode ${answerFile} answers.ini
-    for stage in $(seq 100); do
+    for stage in 1 2; do
       echo STAGE $stage
-      ${lib.meta.getExe dosbox-x} -conf ${dosboxConf}
+      SDL_VIDEODRIVER=dummy ${lib.getExe dosbox-x} -conf ${dosboxConf} || true
     done
     cp win2k.img $out
   '';
@@ -86,10 +52,6 @@ let
       [dosbox]
       memsize = 32
 
-      [cpu]
-      turbo=on
-      stop turbo on key = false
-
       [autoexec]
       imgmount c win2k.img
       ${dosPostInstall}
@@ -97,9 +59,7 @@ let
     '';
   in runCommand "win2k.img" { inherit (installedImage) passthru; } ''
     cp --no-preserve=mode ${installedImage} ./win2k.img
-    SDL_VIDEODRIVER=dummy ${
-      lib.meta.getExe dosbox-x
-    } -conf ${dosboxConf-postInstall}
+    SDL_VIDEODRIVER=dummy ${lib.getExe dosbox-x} -conf ${dosboxConf-postInstall}
     mv win2k.img $out
   '';
 in if (dosPostInstall != "") then postInstalledImage else installedImage
