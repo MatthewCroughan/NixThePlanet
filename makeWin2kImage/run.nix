@@ -1,10 +1,5 @@
 { writeShellScriptBin, writeText, lib, dosbox-x, makeWin2kImage
-, extraDosboxFlags ? [ ], diskImage ? makeWin2kImage {
-  dosPostInstall = ''
-    c:
-    echo win >> AUTOEXEC.BAT
-  '';
-} }:
+, extraDosboxFlags ? [ ], diskImage ? makeWin2kImage { } }:
 let
   dosboxConf = writeText "dosbox.conf" ''
     [dosbox]
