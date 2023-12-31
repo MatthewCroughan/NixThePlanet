@@ -1,3 +1,8 @@
+# Fabulous.systems demonstrated that installing Windows 2000 in DOSBox-X is possible in
+# https://fabulous.systems/posts/2023/07/installing-windows-2000-in-dosbox-x/
+# but this package uses a different approach, installing from scratch instead of
+# from Windows 98 and using an answer file for unattended installation.
+
 { lib, fetchurl, runCommand, p7zip, dosbox-x, writeText, callPackage }:
 { dosPostInstall ? "", answerFile ?
   writeText "answers.ini" (lib.generators.toINI { } (import ./answers.nix)) }:
@@ -15,6 +20,9 @@ let
   dosboxConf = writeText "dosbox.conf" ''
     [dosbox]
     memsize = 32
+
+    [cpu]
+    turbo = off  # Turbo prevents the boot screen from progressing
 
     [autoexec]
     mount a .

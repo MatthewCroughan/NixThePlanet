@@ -1,3 +1,16 @@
+# Windows 2000's unattended installation feature is a bit tricky to figure out.
+# The SUPPORT/TOOLS/SETUP.EXE in the install disk ISO crashes DOSBox-X, but
+# SUPPORT/TOOLS/SREADME.DOC says that it doesn't install the relevant deployment
+# tools in DEPLOY.CAB anyway.  If you extract SUPPORT/TOOLS/DEPLOY.CAB with
+# cabextract, there is setupmgr.exe inside that has a GUI for creating the
+# answer files.  It must be run in the same directory as setupmgx.dll, also
+# included in DEPLOY.CAB.  There is also documentation in DEPLOY.CAB in the
+# deptool.chm, readme.txt, and unattend.doc files.  The setupmgr.exe tool
+# doesn't ask for a product key, so that has to be added to UserData.ProductID
+# separately. Otherwise, during the install there will be an error asking the
+# user to input it. The unattend.doc file also contains documentation of the
+# different answer file options.
+
 {
   Data = {
     AutoPartition = 1;
