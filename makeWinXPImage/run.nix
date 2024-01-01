@@ -1,20 +1,21 @@
 { writeShellScriptBin, writeText, lib, dosbox-x, makeWinXPImage
-, extraDosboxFlags ? [ ], diskImage ? makeWinXPImage {
-  dosPostInstall = ''
-    c:
-    echo win >> AUTOEXEC.BAT
-  '';
-} }:
+, extraDosboxFlags ? [ ], diskImage ? makeWinXPImage { } }:
 let
   dosboxConf = writeText "dosbox.conf" ''
+    [dosbox]
+    memsize = 64
+
+    [cpu]
+    cputype = pentium
+
     [sdl]
     autolock = true
 
     [autoexec]
-    imgmount C win2k.img
+    imgmount C winxp.img
     boot -l C
   '';
-in writeShellScriptBin "run-win2k.sh" ''
+in writeShellScriptBin "run-winxp.sh" ''
   args=(
     -conf ${dosboxConf}
     ${lib.concatStringsSep " " extraDosboxFlags}
