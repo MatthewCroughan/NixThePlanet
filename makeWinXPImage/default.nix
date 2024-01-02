@@ -1,3 +1,5 @@
+# The installer from DOS (winnt.exe) doesn't work, so use winnt32.exe from Windows 2000
+
 { lib, fetchtorrent, runCommand, dosbox-x, xvfb-run, x11vnc, writeText
 , makeWin2kImage, callPackage }:
 { dosPostInstall ? "", answerFile ?
@@ -13,15 +15,13 @@ let
     [dosbox]
     memsize = 64
 
-    [dos]
-    ver = 7.0  # Need long filenames support to edit the C drive in autoexec
-
     [cpu]
     cputype = pentium
 
     [autoexec]
     imgmount c win2k.img
     imgmount d winxp.iso
+    imgmount e winxp.img
     boot -l c
   '';
   installedImage = runCommand "winxp.img" {
@@ -36,14 +36,22 @@ let
     echo "winxp-installer src: ${winxp-installer}"
     cp --no-preserve=mode ${winxp-installer}/*.iso winxp.iso
     cp --no-preserve=mode ${win2k} win2k.img
+    # Copy answer file to win2k.img and add autostart script that runs the XP installer
     cp --no-preserve=mode ${answerFile} answers.ini
-    SDL_VIDEODRIVER=dummy dosbox-x -nopromptfolder -hostrun \
-      -c 'imgmount c win2k.img' \
-      -c 'mount a .' \
-      -c 'xcopy a:/answers.ini c:/' \
-      -c 'echo d:\\i386\\winnt32.exe /unattend:c:\\answers.ini > "c:/Documents and Settings/All Users/Start Menu/Programs/Startup/start-xp-install.bat"' \
-      -c 'exit'
-    false
+    SDL_VIDEODRIVER=dummy dosbox-x -conf ${
+      writeText "dosbox.conf" ''
+        [dos]
+        ver = 7.0  # Need long filenames support to edit the C drive in autoexec
+
+        [autoexec]
+        imgmake winxp.img -t hd_2gig
+        imgmount c win2k.img
+        mount a .
+        xcopy a:/answers.ini c:/
+        echo d:\i386\winnt32.exe /unattend:c:\answers.ini > "c:\Documents and Settings\All Users\Start Menu\Programs\Startup\start-xp-install.bat"
+        exit
+      ''
+    }
     rm -f answers.ini
     (
       while true; do
@@ -55,7 +63,7 @@ let
       echo STAGE $stage
       xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" dosbox-x -conf ${dosboxConf} || true
     done
-    cp win2k.img $out
+    cp winxp.img $out
   '';
   postInstalledImage = let
     dosboxConf-postInstall = writeText "dosbox.conf" ''
