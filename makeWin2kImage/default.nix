@@ -3,7 +3,8 @@
 # but this package uses a different approach, installing from scratch instead of
 # from Windows 98 and using an answer file for unattended installation.
 
-{ lib, fetchurl, runCommand, p7zip, dosbox-x, writeText, callPackage }:
+{ lib, fetchurl, runCommand, p7zip, dosbox-x, x11vnc, tesseract, vncdo, xvfb-run
+, writeText, writeShellScript, callPackage }:
 { dosPostInstall ? "", answerFile ?
   writeText "answers.ini" (lib.generators.toINI { } (import ./answers.nix)) }:
 let
@@ -40,7 +41,25 @@ let
     ls -lah win2k
     mv win2k/*/*.iso $out
   '';
+  tesseractScript = writeShellScript "tesseractScript" ''
+    export OMP_THREAD_LIMIT=1
+    cd $(mktemp -d)
+    TEXT=""
+    while true
+    do
+      sleep 3
+      ${vncdo}/bin/vncdo -s 127.0.0.1::5900 capture cap.png
+      NEW_TEXT="$(${tesseract}/bin/tesseract cap.png stdout 2>/dev/null)"
+      if [ "$TEXT" != "$NEW_TEXT" ]; then
+        echo "$NEW_TEXT"
+        TEXT="$NEW_TEXT"
+      fi
+    done
+  '';
   installedImage = runCommand "win2k.img" {
+    # set __impure = true; for debugging
+    # __impure = true;
+    buildInputs = [ dosbox-x xvfb-run x11vnc ];
     passthru = rec {
       makeRunScript = callPackage ./run.nix;
       runScript = makeRunScript { };
@@ -49,9 +68,17 @@ let
     echo "iso src: ${iso}"
     cp --no-preserve=mode ${iso} win2k.iso
     cp --no-preserve=mode ${answerFile} answers.ini
+    # This install is fully unattended, but a VNC server and tesseract script are still started for log output and debugging
+    (
+      while true; do
+        DISPLAY=:99 XAUTHORITY=/tmp/xvfb.auth x11vnc -many -shared -display :99 >/dev/null 2>&1 || true
+        echo RESTARTING VNC
+      done
+    ) &
+    ${tesseractScript} &
     for stage in 1 2; do
       echo STAGE $stage
-      SDL_VIDEODRIVER=dummy ${lib.getExe dosbox-x} -conf ${dosboxConf} || true
+      xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" dosbox-x -conf ${dosboxConf} || true
     done
     cp win2k.img $out
   '';
