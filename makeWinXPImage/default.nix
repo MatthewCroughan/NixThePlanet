@@ -14,7 +14,6 @@ let
   dosboxConf = writeText "dosbox.conf" ''
     [dosbox]
     memsize = 128
-    machine = svga_s3trio64v+
 
     [dos]
     ver = 8.0
