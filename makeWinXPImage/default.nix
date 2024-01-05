@@ -84,7 +84,7 @@ let
         echo RESTARTING VNC
       done
     ) &
-    for stage in $(seq 100); do
+    for stage in $(seq 3); do
       echo STAGE $stage
       xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" dosbox-x -conf ${dosboxConf} || true
     done
