@@ -93,6 +93,9 @@ let
       [dosbox]
       memsize = 32
 
+      [dos]
+      ver = 8.0
+
       [autoexec]
       imgmount c win2k.img
       ${dosPostInstall}

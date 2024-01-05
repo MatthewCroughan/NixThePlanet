@@ -1,7 +1,7 @@
 # The installer from DOS (winnt.exe) doesn't work, so use winnt32.exe from Windows 2000
 
-{ lib, fetchtorrent, runCommand, dosbox-x, xvfb-run, x11vnc, writeText
-, makeWin2kImage, callPackage }:
+{ lib, fetchtorrent, runCommand, p7zip, cdrkit, dosbox-x, xvfb-run, x11vnc
+, writeText, makeWin2kImage, callPackage }:
 { dosPostInstall ? "", answerFile ?
   writeText "answers.ini" (lib.generators.toINI { } (import ./answers.nix)) }:
 let
@@ -13,46 +13,73 @@ let
   };
   dosboxConf = writeText "dosbox.conf" ''
     [dosbox]
-    memsize = 64
+    memsize = 128
+    machine = svga_s3trio64v+
+
+    [dos]
+    ver = 8.0
 
     [cpu]
-    cputype = pentium
+    cputype = ppro_slow
+    core = dynamic_rec
+    cycles = max
+
+    [serial]
+    serial1 = disabled
+    serial2 = disabled
+    serial3 = disabled
+    serial4 = disabled
+    serial5 = disabled
+    serial6 = disabled
+    serial7 = disabled
+    serial8 = disabled
+    serial9 = disabled
+
+    [parallel]
+    parallel1 = disabled
+    parallel2 = disabled
+    parallel3 = disabled
+    parallel4 = disabled
+    parallel5 = disabled
+    parallel6 = disabled
+    parallel7 = disabled
+    parallel8 = disabled
+    parallel9 = disabled
+    dongle = false
 
     [autoexec]
     imgmount c win2k.img
     imgmount d winxp.iso
-    imgmount e winxp.img
     boot -l c
   '';
   installedImage = runCommand "winxp.img" {
     # set __impure = true; for debugging
     __impure = true;
-    buildInputs = [ dosbox-x xvfb-run x11vnc ];
+    buildInputs = [ p7zip cdrkit dosbox-x xvfb-run x11vnc ];
     passthru = rec {
       makeRunScript = callPackage ./run.nix;
       runScript = makeRunScript { };
     };
   } ''
-    echo "winxp-installer src: ${winxp-installer}"
-    cp --no-preserve=mode ${winxp-installer}/*.iso winxp.iso
+    ln -s ${winxp-installer}/*.iso winxp.iso
     cp --no-preserve=mode ${win2k} win2k.img
-    # Copy answer file to win2k.img and add autostart script that runs the XP installer
     cp --no-preserve=mode ${answerFile} answers.ini
-    SDL_VIDEODRIVER=dummy dosbox-x -conf ${
-      writeText "dosbox.conf" ''
-        [dos]
-        ver = 7.0  # Need long filenames support to edit the C drive in autoexec
+    # Copy answer file to win2k.img and add autostart script that runs the XP installer
+    (
+      SDL_VIDEODRIVER=dummy dosbox-x -conf ${
+        writeText "dosbox.conf" ''
+          [dos]
+          ver = 8.0  # Need long filenames support to edit the C drive in autoexec
 
-        [autoexec]
-        imgmake winxp.img -t hd_2gig
-        imgmount c win2k.img
-        mount a .
-        xcopy a:/answers.ini c:/
-        echo d:\i386\winnt32.exe /unattend:c:\answers.ini > "c:\Documents and Settings\All Users\Start Menu\Programs\Startup\start-xp-install.bat"
-        exit
-      ''
-    }
-    rm -f answers.ini
+          [autoexec]
+          mount a .
+          imgmount c win2k.img
+          copy a:\answers.ini c:\
+          echo d:\i386\winnt32.exe /unattend:c:\answers.ini /debug4:c:\log.txt /dudisable > "c:\Documents and Settings\All Users\Start Menu\Programs\Startup\start-xp-install.bat"
+          exit
+        ''
+      }
+    )
     (
       while true; do
         DISPLAY=:99 XAUTHORITY=/tmp/xvfb.auth x11vnc -many -shared -display :99 >/dev/null 2>&1 || true
@@ -63,13 +90,17 @@ let
       echo STAGE $stage
       xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" dosbox-x -conf ${dosboxConf} || true
     done
-    cp winxp.img $out
+    mkdir $out
+    cp win2k.img $out
   '';
   postInstalledImage = let
     dosboxConf-postInstall = writeText "dosbox.conf" ''
       [cpu]
       turbo = on
       stop turbo on key = false
+
+      [dos]
+      ver = 8.0
 
       [autoexec]
       imgmount c winxp.img
