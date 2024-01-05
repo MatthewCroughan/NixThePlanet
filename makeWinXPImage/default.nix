@@ -21,8 +21,6 @@ let
 
     [cpu]
     cputype = ppro_slow
-    core = dynamic_rec
-    cycles = max
 
     [serial]
     serial1 = disabled
