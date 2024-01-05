@@ -21,18 +21,6 @@ let
     [cpu]
     cputype = ppro_slow
 
-    [parallel]
-    parallel1 = disabled
-    parallel2 = disabled
-    parallel3 = disabled
-    parallel4 = disabled
-    parallel5 = disabled
-    parallel6 = disabled
-    parallel7 = disabled
-    parallel8 = disabled
-    parallel9 = disabled
-    dongle = false
-
     [autoexec]
     imgmount c win2k.img
     imgmount d winxp.iso
