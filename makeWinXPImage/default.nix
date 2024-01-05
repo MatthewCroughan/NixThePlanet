@@ -73,7 +73,7 @@ let
           mount a .
           imgmount c win2k.img
           copy a:\answers.ini c:\
-          echo d:\i386\winnt32.exe /unattend:c:\answers.ini /debug4:c:\log.txt /dudisable > "c:\Documents and Settings\All Users\Start Menu\Programs\Startup\start-xp-install.bat"
+          echo d:\i386\winnt32.exe /unattend:c:\answers.ini > "c:\Documents and Settings\All Users\Start Menu\Programs\Startup\start-xp-install.bat"
           exit
         ''
       }
