@@ -21,17 +21,6 @@ let
     [cpu]
     cputype = ppro_slow
 
-    [serial]
-    serial1 = disabled
-    serial2 = disabled
-    serial3 = disabled
-    serial4 = disabled
-    serial5 = disabled
-    serial6 = disabled
-    serial7 = disabled
-    serial8 = disabled
-    serial9 = disabled
-
     [parallel]
     parallel1 = disabled
     parallel2 = disabled
