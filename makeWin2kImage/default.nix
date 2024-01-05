@@ -18,22 +18,27 @@ let
     sha512 =
       "9cb026d8eaa3933d7ca0447c7e1b05fd1504a6063b16a86d5cca4dc04ef5d598bd8ae95dac6f10671422ece192b1aff94ecd505d2cd7a15981eaa4fd691f1489";
   };
-  dosboxConf = writeText "dosbox.conf" ''
-    [dosbox]
-    memsize = 32
+  dosboxConf = stage:
+    writeText "dosbox.conf" ''
+      [dosbox]
+      memsize = 32
 
-    [cpu]
-    turbo = off  # Turbo prevents the boot screen from progressing
+      [dos]
+      hard drive data rate limit = 0
+      floppy drive data rate limit = 0
 
-    [autoexec]
-    mount a .
-    if not exist a:\win2k.img imgmake win2k.img -t hd_1gig
-    imgmount c win2k.img -t hdd
-    imgmount d win2k.iso
-    c:
-    if not exist c:\ntldr d:\i386\winnt /s:d:\ /u:a:\answers.ini
-    boot -l c
-  '';
+      [cpu]
+      # Turbo prevents the boot screen from progressing in stage 2
+      turbo = ${if stage == 2 then "off" else "on"}
+
+      [autoexec]
+      mount a .
+      if not exist a:\win2k.img imgmake win2k.img -t hd_1gig
+      imgmount c win2k.img -t hdd
+      imgmount d win2k.iso
+      if not exist c:\ntldr d:\i386\winnt /s:d: /u:a:answers.ini
+      boot -l c
+    '';
   iso = runCommand "win2k.iso" { } ''
     echo "win2k-installer src: ${win2k-installer}"
     mkdir win2k
@@ -76,10 +81,11 @@ let
       done
     ) &
     ${tesseractScript} &
-    for stage in 1 2; do
-      echo STAGE $stage
-      xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" dosbox-x -conf ${dosboxConf} || true
-    done
+    ${lib.strings.concatMapStrings (stage: ''
+      echo STAGE ${toString stage}
+      xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" \
+        dosbox-x -conf ${dosboxConf stage} || true
+    '') [ 1 2 ]}
     cp win2k.img $out
   '';
   postInstalledImage = let
