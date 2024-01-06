@@ -5,7 +5,7 @@
 
 { lib, fetchurl, runCommand, p7zip, dosbox-x, x11vnc, tesseract, vncdo, xvfb-run
 , writeText, writeShellScript, callPackage }:
-{ dosPostInstall ? "", answerFile ?
+{ dosPostInstall ? "", imageType ? "hd_1gig", answerFile ?
   writeText "answers.ini" (lib.generators.toINI { } (import ./answers.nix)) }:
 let
   win2k-installer = fetchurl {
@@ -33,7 +33,7 @@ let
 
       [autoexec]
       mount a .
-      if not exist a:\win2k.img imgmake win2k.img -t hd_1gig
+      if not exist a:\win2k.img imgmake win2k.img -t ${imageType}
       imgmount c win2k.img -t hdd
       imgmount d win2k.iso
       if not exist c:\ntldr d:\i386\winnt /s:d: /u:a:answers.ini

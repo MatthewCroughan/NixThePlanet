@@ -1,38 +1,61 @@
 # The installer from DOS (winnt.exe) doesn't work, so use winnt32.exe from Windows 2000
 
-{ lib, fetchtorrent, runCommand, p7zip, cdrkit, dosbox-x, xvfb-run, x11vnc
-, writeText, makeWin2kImage, callPackage }:
+{ lib, fetchtorrent, runCommand, dosbox-x, xvfb-run, x11vnc, vncdo, tesseract
+, writeText, writeShellScript, makeWin2kImage, callPackage }:
 { dosPostInstall ? "", answerFile ?
   writeText "answers.ini" (lib.generators.toINI { } (import ./answers.nix)) }:
 let
-  win2k = makeWin2kImage { };
+  win2k = makeWin2kImage { imageType = "hd_2gig"; };
   winxp-installer = fetchtorrent {
     url =
       "https://archive.org/download/WinXPProSP3x86/WinXPProSP3x86_archive.torrent";
     hash = "sha256-NDCPO4gT4rgfB76HrF/HtaRNzSfpXJUSHbqLqECvkpU=";
   };
-  dosboxConf = writeText "dosbox.conf" ''
-    [dosbox]
-    memsize = 128
+  dosboxConf = stage:
+    writeText "dosbox.conf" ''
+      [dosbox]
+      memsize = 128
 
-    [dos]
-    ver = 8.0
-    hard drive data rate limit = 0
-    floppy drive data rate limit = 0
+      [dos]
+      ver = 7.0  # Need long filenames support to edit the C drive in autoexec
+      hard drive data rate limit = 0
+      floppy drive data rate limit = 0
 
-    [cpu]
-    cputype = ppro_slow
-    turbo = off                  # TODO: enable after stage 1
+      [cpu]
+      cputype = ppro_slow
+      # Turbo breaks win2k boot so disable during the win2k boostrap
+      # TODO: turbo = ${if stage == 1 then "off" else "on"}
 
-    [autoexec]
-    imgmount c win2k.img
-    imgmount d winxp.iso
-    boot -l c
+      [autoexec]
+      imgmount c win2k.img
+      imgmount d winxp.iso
+      ${lib.optionalString (stage == 2) ''
+        # After the XP install is bootstrapped, remove the old Windows 2000 files to make space for XP
+        deltree /y c:\WINDOWS
+        deltree /y "c:\Documents and Settings"
+        deltree /y "c:\Program Files"
+      ''}
+      boot -l c
+    '';
+  tesseractScript = writeShellScript "tesseractScript" ''
+    export OMP_THREAD_LIMIT=1
+    cd $(mktemp -d)
+    TEXT=""
+    while true
+    do
+      sleep 3
+      ${vncdo}/bin/vncdo -s 127.0.0.1::5900 capture cap.png
+      NEW_TEXT="$(${tesseract}/bin/tesseract cap.png stdout 2>/dev/null)"
+      if [ "$TEXT" != "$NEW_TEXT" ]; then
+        echo "$NEW_TEXT"
+        TEXT="$NEW_TEXT"
+      fi
+    done
   '';
   installedImage = runCommand "winxp.img" {
     # set __impure = true; for debugging
     __impure = true;
-    buildInputs = [ p7zip cdrkit dosbox-x xvfb-run x11vnc ];
+    buildInputs = [ dosbox-x xvfb-run x11vnc ];
     passthru = rec {
       makeRunScript = callPackage ./run.nix;
       runScript = makeRunScript { };
@@ -46,7 +69,7 @@ let
       SDL_VIDEODRIVER=dummy dosbox-x -conf ${
         writeText "dosbox.conf" ''
           [dos]
-          ver = 8.0  # Need long filenames support to edit the C drive in autoexec
+          ver = 7.0  # Need long filenames support to edit the C drive in autoexec
 
           [autoexec]
           mount a .
@@ -63,10 +86,15 @@ let
         echo RESTARTING VNC
       done
     ) &
-    for stage in $(seq 3); do
-      echo STAGE $stage
-      xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" dosbox-x -conf ${dosboxConf} || true
-    done
+    ${tesseractScript} &
+    # TODO:
+    # The following list shows the existing partitions
+    # ENTER-Install
+    ${lib.strings.concatMapStrings (stage: ''
+      echo STAGE ${toString stage}
+      xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" \
+        dosbox-x -conf ${dosboxConf stage} || true
+    '') (lib.range 1 3)}
     mkdir $out
     cp win2k.img $out
   '';
@@ -75,9 +103,6 @@ let
       [cpu]
       turbo = on
       stop turbo on key = false
-
-      [dos]
-      ver = 8.0
 
       [autoexec]
       imgmount c winxp.img
