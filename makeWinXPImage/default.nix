@@ -17,9 +17,12 @@ let
 
     [dos]
     ver = 8.0
+    hard drive data rate limit = 0
+    floppy drive data rate limit = 0
 
     [cpu]
     cputype = ppro_slow
+    turbo = off                  # TODO: enable after stage 1
 
     [autoexec]
     imgmount c win2k.img
