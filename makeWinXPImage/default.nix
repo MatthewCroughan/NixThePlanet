@@ -1,7 +1,8 @@
 # The installer from DOS (winnt.exe) doesn't work, so use winnt32.exe from Windows 2000
 
 { lib, fetchtorrent, runCommand, dosbox-x, xvfb-run, x11vnc, vncdo, tesseract
-, writeText, writeShellScript, makeWin2kImage, callPackage }:
+, expect, writeText, writeShellScript, writeScript, makeWin2kImage, callPackage
+}:
 { dosPostInstall ? "", answerFile ?
   writeText "answers.ini" (lib.generators.toINI { } (import ./answers.nix)) }:
 let
@@ -52,6 +53,21 @@ let
       fi
     done
   '';
+  expectScript = let
+    vncdoWrapper = writeScript "vncdoWrapper" ''
+      sleep 3
+      ${vncdo}/bin/vncdo --force-caps -s 127.0.0.1::5900 "$@"
+    '';
+  in writeScript "expect.sh" ''
+    #!${expect}/bin/expect -f
+    set debug 5
+    set timeout -1
+    spawn ${tesseractScript}
+    expect "ENTER-Install"
+    exec ${vncdoWrapper} key enter
+    # Keep running until killed so the entire build gets tesseract log output
+    while { 1 } { sleep 10000 }
+  '';
   installedImage = runCommand "winxp.img" {
     # set __impure = true; for debugging
     __impure = true;
@@ -86,10 +102,7 @@ let
         echo RESTARTING VNC
       done
     ) &
-    ${tesseractScript} &
-    # TODO:
-    # The following list shows the existing partitions
-    # ENTER-Install
+    ${expectScript} &
     ${lib.strings.concatMapStrings (stage: ''
       echo STAGE ${toString stage}
       xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" \
