@@ -24,8 +24,8 @@ let
 
       [cpu]
       cputype = ppro_slow
-      # Turbo breaks win2k boot so disable during the win2k boostrap
-      # TODO: turbo = ${if stage == 1 then "off" else "on"}
+      # Turbo breaks win2k boot and final stage
+      turbo = ${if builtins.elem stage [ 1 3 ] then "off" else "on"}
 
       [autoexec]
       imgmount c win2k.img
