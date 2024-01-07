@@ -70,7 +70,7 @@ let
   '';
   installedImage = runCommand "winxp.img" {
     # set __impure = true; for debugging
-    __impure = true;
+    # __impure = true;
     buildInputs = [ dosbox-x xvfb-run x11vnc ];
     passthru = rec {
       makeRunScript = callPackage ./run.nix;
