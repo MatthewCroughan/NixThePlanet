@@ -3,10 +3,10 @@
 let
   dosboxConf = writeText "dosbox.conf" ''
     [dosbox]
-    memsize = 64
+    memsize = 128
 
     [cpu]
-    cputype = pentium
+    cputype = ppro_slow
 
     [sdl]
     autolock = true
