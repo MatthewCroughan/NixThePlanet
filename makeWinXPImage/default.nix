@@ -108,7 +108,6 @@ let
       xvfb-run -l -s ":99 -auth /tmp/xvfb.auth -ac -screen 0 800x600x24" \
         dosbox-x -conf ${dosboxConf stage} || true
     '') (lib.range 1 3)}
-    mkdir $out
     cp win2k.img $out
   '';
   postInstalledImage = let
