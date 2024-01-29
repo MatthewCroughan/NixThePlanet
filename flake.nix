@@ -60,18 +60,23 @@
           makeMsDos622Image = pkgs.callPackage ./makeMsDos622Image {};
           makeWin30Image = pkgs.callPackage ./makeWin30Image {};
           makeWfwg311Image = pkgs.callPackage ./makeWfwg311Image {};
-          makeWindowsImage = { ... }@args: wfvm.lib.makeWindowsImage {
-            windowsImage = (pkgs.fetchtorrent {
-              url = "https://archive.org/download/win-10-21-h-1-english-x-64_20210711/win-10-21-h-1-english-x-64_20210711_archive.torrent";
-              hash = "";
-            }) + "/Win10_21H1_English_x64.iso";
-          } // args;
+          makeWindows11Image = pkgs.callPackage ./makeWindows11Image { inherit wfvm; };
+          #makeWindows11Image = { ... }@args: wfvm.lib.makeWindowsImage {
+          #  windowsImage = (pkgs.fetchtorrent {
+          #    url = "https://archive.org/download/windows11_20220930/windows11_20220930_archive.torrent";
+          #    hash = "sha256-vym/dL3zwQDvPRmdvLSEeO/8toIEeCqfpyrmeEOnldo=";
+          #  }) + "/Win11_22H2_English_x64v1.iso";
+          #} // args;
 #          makeSystem7Image = pkgs.callPackage ./makeSystem7Image {};
         };
         apps = {
           macos-ventura = {
             type = "app";
             program = config.packages.macos-ventura-image.runScript;
+          };
+          windows-11 = {
+            type = "app";
+            program = config.packages.windows-11-image.runScript;
           };
           msdos622 = {
             type = "app";
@@ -88,7 +93,7 @@
         };
         packages = rec {
           macos-ventura-image = config.legacyPackages.makeDarwinImage {};
-          windows-10-image = config.legacyPackages.makeWindowsImage {};
+          windows-11-image = config.legacyPackages.makeWindows11Image {};
           msdos622-image = config.legacyPackages.makeMsDos622Image {};
           win30-image = config.legacyPackages.makeWin30Image {};
           wfwg311-image = config.legacyPackages.makeWfwg311Image {};
