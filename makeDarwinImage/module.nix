@@ -97,12 +97,26 @@ in
         Whether to open the sshPort and vncDisplayNumber on the networking.firewall
       '';
     };
+    installNix = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = lib.mdDoc ''
+        Whether to install Nix (it requires the machine to access the internet for the installation)
+      '';
+    };
+    darwinConfig = lib.mkOption {
+      type = lib.types.anything; # TODO figure out a better type
+      default = null;
+      description = lib.mdDoc ''
+	A darwinConfig to use for the VM (it may require to access the internet)
+      '';
+    };
   };
   config = let
     run-macos = cfg.package.makeRunScript {
       diskImage = cfg.package;
       extraQemuFlags = [ "-vnc ${cfg.vncListenAddr}:${toString cfg.vncDisplayNumber}" ] ++ cfg.extraQemuFlags;
-      inherit (cfg) threads cores sockets mem sshListenAddr sshPort;
+      inherit (cfg) threads cores sockets mem sshListenAddr sshPort installNix darwinConfig;
     };
   in lib.mkIf cfg.enable {
     networking.firewall.allowedTCPPorts = lib.optionals cfg.openFirewall [ (5900 + cfg.vncDisplayNumber) cfg.sshPort ];
@@ -117,7 +131,6 @@ in
           Type = "simple";
           ExecStart = "${lib.getExe run-macos}";
           Restart = "always";
-          DynamicUser = true;
           StateDirectory = baseNameOf cfg.dataDir;
           WorkingDirectory = cfg.dataDir;
         };
