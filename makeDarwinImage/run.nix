@@ -1,4 +1,6 @@
 { writeShellScriptBin
+, openssh
+, sshpass
 , makeDarwinImage
 , qemu_kvm
 , nix
@@ -14,9 +16,49 @@
 , mem ? "6G"
 , diskImage ? (makeDarwinImage {})
 , extraQemuFlags ? []
+, installNix ? true
+, darwinConfig ? null
 , lib
-}:
-writeShellScriptBin "run-macOS.sh" ''
+, writeShellScript
+}: let
+  darwinSystemDrv = builtins.unsafeDiscardOutputDependency darwinConfig.system.drvPath;
+  installNixRemotelyScript = writeShellScript "install-nix.sh" ''
+      if ! command -v nix &> /dev/null
+      then
+        echo "Nix not found, installing it..."
+        echo admin | sudo -S /bin/sh -c "curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm"
+      fi
+  '';
+  installNixDarwinScript = writeShellScript "install-nix.sh" ''
+    DARWIN_CONFIG="$(nix build ${darwinSystemDrv}^out --print-out-paths --no-link)"
+    echo admin | sudo -S rm /etc/nix/nix.conf
+    echo admin | sudo -S $DARWIN_CONFIG/activate-user
+    echo admin | sudo -S $DARWIN_CONFIG/activate
+  '';
+  installNixScript = writeShellScript "install-nix.sh" ''
+    PATH=$PATH:${openssh}/bin:${sshpass}/bin
+    KEY_PATH=".ssh/id_ed25519"
+    [ ! -f $KEY_PATH ] && ssh-keygen -t ed25519 -f $KEY_PATH -N ""
+
+    while ! ssh-keyscan -p ${toString sshPort} 127.0.0.1
+    do
+      sleep 3
+      echo SSH not ready
+    done
+
+    echo "SSH ready"
+
+    sshpass -p admin ssh-copy-id -i $KEY_PATH -p ${toString sshPort} -o "StrictHostKeyChecking no" admin@127.0.0.1
+
+    ssh -p ${toString sshPort} -o "StrictHostKeyChecking no" -i $KEY_PATH admin@127.0.0.1 bash -s -- < ${installNixRemotelyScript}
+
+    ${lib.optionalString (! isNull darwinConfig) ''
+      NIX_SSHOPTS="-p ${toString sshPort} -i $KEY_PATH" nix-copy-closure --to admin@127.0.0.1 ${darwinSystemDrv}
+
+      ssh -p ${toString sshPort} -o "StrictHostKeyChecking no" -i $KEY_PATH admin@127.0.0.1 bash -s -- < ${installNixDarwinScript}
+    ''}
+  '';
+in writeShellScriptBin "run-macOS.sh" ''
   MY_OPTIONS="+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check"
 
   # In case Nix is not on the path, add it, but make it lower precedence than
@@ -50,6 +92,8 @@ writeShellScriptBin "run-macOS.sh" ''
     nix-store --realise ${diskImage} --add-root ./macos-ventura-base-image.qcow2
     ${qemu_kvm}/bin/qemu-img create -b ${diskImage} -F qcow2 -f qcow2 ./macos-ventura.qcow2
   fi
+
+  ${lib.optionalString installNix "${installNixScript}&"}
 
   # Sometimes plugins like JACK will not be compatible with QEMU from this
   # flake, so unset LD_LIBRARY_PATH
