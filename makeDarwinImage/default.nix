@@ -1,6 +1,8 @@
 { fetchurl, writeScript, writeShellScript, runCommand, vncdo, dmg2img, cdrkit, qemu_kvm, python311, tesseract, expect, socat, ruby, xorriso, callPackage, sshpass, openssh, lib, osx-kvm }:
 { diskSizeBytes ? 50000000000
 , repeatabilityTest ? false
+, username ? "admin"
+, password ? "admin"
 }:
 let
   diskSize = if diskSizeBytes < 40000000000 then throw "diskSizeBytes ${toString diskSizeBytes} too small for macOS" else diskSizeBytes;
@@ -71,7 +73,7 @@ let
       sleep 3
       echo SSH Not Ready
     done
-    ${sshpass}/bin/sshpass -p admin ${openssh}/bin/ssh -o StrictHostKeyChecking=no -p 2222 admin@127.0.0.1 'set -e; killall -9 Terminal KeyboardSetupAssistant; while pgrep Terminal KeyboardSetupAssistant; do echo "Waiting for Terminal/KeyboardAssistant to die"; done; sleep 10; echo "admin" | sudo -S shutdown -h now'
+    ${sshpass}/bin/sshpass -p ${password} ${openssh}/bin/ssh -o StrictHostKeyChecking=no -p 2222 ${username}@127.0.0.1 'set -e; killall -9 Terminal KeyboardSetupAssistant; while pgrep Terminal KeyboardSetupAssistant; do echo "Waiting for Terminal/KeyboardAssistant to die"; done; sleep 10; echo "${password}" | sudo -S shutdown -h now'
     ssh_exit_code=$?
     if [ "$ssh_exit_code" == 255 ]; then
       echo "macOS terminated the SSH connection uncleanly on shutdown, ignoring..."
@@ -174,7 +176,7 @@ let
 
     ${sendUser "Create a Computer Account"}
     expect "Create a Computer Account"
-    exec ${qemuSendKeys} "\\<delay>admin<delay><tab><delay>admin<delay><tab><delay>admin<delay><tab><delay>admin<delay><tab><delay><tab><delay><tab><delay><spc>"
+    exec ${qemuSendKeys} "\\<delay>${username}<delay><tab><delay>${username}<delay><tab><delay>${password}<delay><tab><delay>${password}<delay><tab><delay><tab><delay><tab><delay><spc>"
 
     ${sendUser "Enable Location Services"}
     expect {
@@ -225,7 +227,7 @@ let
     expect "80x24"
     exec ${qemuSendKeys} "sudo sh -ec 'launchctl load -w /System/Library/LaunchDaemons/ssh.plist; while ! ssh-keyscan 127.0.0.1; do echo SSH Not Ready; done'<kp_enter>"
     expect "Password"
-    exec ${qemuSendKeys} "admin<kp_enter>"
+    exec ${qemuSendKeys} "${password}<kp_enter>"
 
     ${sendUser "OMG DID IT WORK???!!!!"}
     exit 0
