@@ -3,7 +3,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
-    wfvm.url = "git+https://git.m-labs.hk/m-labs/wfvm";
+    wfvm.url = "git+https://git.m-labs.hk/m-labs/wfvm?rev=8051ad647af9880e0ff5efd5f0bd2f5e55fa1883&allRefs=true";
     osx-kvm = {
       url = "github:kholia/OSX-KVM";
       flake = false;
