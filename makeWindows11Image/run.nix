@@ -20,8 +20,8 @@ writeShellScriptBin "run-win11.sh" ''
 
   args=(
     -enable-kvm -m "${mem}" -cpu host,kvm=on,+hypervisor,+invtsc,l3-cache=on,migratable=no,hv_passthrough
-    -no-hpet -global kvm-pit.lost_tick_policy=discard -global ICH9-LPC.disable_s3=1
-    -machine q35
+    -global kvm-pit.lost_tick_policy=discard -global ICH9-LPC.disable_s3=1
+    -machine q35,hpet=off
     -bios ${OVMF.fd}/FV/OVMF.fd
     -usb -device usb-kbd -device usb-tablet -device usb-tablet
     -smp "${toString threads}",cores="${toString cores}",sockets="${toString sockets}"
