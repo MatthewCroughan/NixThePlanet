@@ -5,7 +5,6 @@
     hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
     wfvm = {
       url = "git+https://git.m-labs.hk/m-labs/wfvm?rev=8051ad647af9880e0ff5efd5f0bd2f5e55fa1883&allRefs=true";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     osx-kvm = {
       url = "github:kholia/OSX-KVM";
