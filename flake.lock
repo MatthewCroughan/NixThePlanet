@@ -91,6 +91,22 @@
         "type": "github"
       }
     },
+    "nixpkgs2305": {
+      "locked": {
+        "lastModified": 1729335589,
+        "narHash": "sha256-IXPSmduyz6UFOlgSbnrps3w08Wpi762bd40LciSdMaI=",
+        "owner": "matthewcroughan",
+        "repo": "nixpkgs",
+        "rev": "48126c1e10a169375dad64773bcef1b4b88bd4b5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "matthewcroughan",
+        "ref": "fix-libguestfs",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1701718080,
@@ -103,22 +119,6 @@
       "original": {
         "owner": "nixos",
         "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_3": {
-      "locked": {
-        "lastModified": 1685004253,
-        "narHash": "sha256-AbVL1nN/TDicUQ5wXZ8xdLERxz/eJr7+o8lqkIOVuaE=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "3e01645c40b92d29f3ae76344a6d654986a91a91",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-23.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -144,13 +144,16 @@
         "flake-parts": "flake-parts",
         "hercules-ci-effects": "hercules-ci-effects",
         "nixpkgs": "nixpkgs_2",
+        "nixpkgs2305": "nixpkgs2305",
         "osx-kvm": "osx-kvm",
         "wfvm": "wfvm"
       }
     },
     "wfvm": {
       "inputs": {
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": [
+          "nixpkgs2305"
+        ]
       },
       "locked": {
         "allRefs": false,
