@@ -1,21 +1,27 @@
-{ writeScript, writeShellScript, runCommand, vncdo, dmg2img, cdrkit, qemu_kvm, python311, tesseract, expect, socat, ruby, xorriso, callPackage, sshpass, openssh, lib, osx-kvm }:
-{ diskSizeBytes ? 50000000000
-, repeatabilityTest ? false
-}:
+{ writeScript, writeShellScript, runCommand, vncdo, dmg2img, cdrkit, qemu_kvm
+, python311, tesseract, expect, socat, ruby, xorriso, callPackage, sshpass
+, openssh, lib, osx-kvm }:
+{ diskSizeBytes ? 50000000000, repeatabilityTest ? false }:
 let
-  diskSize = if diskSizeBytes < 40000000000 then throw "diskSizeBytes ${toString diskSizeBytes} too small for macOS" else diskSizeBytes;
+  diskSize = if diskSizeBytes < 40000000000 then
+    throw "diskSizeBytes ${toString diskSizeBytes} too small for macOS"
+  else
+    diskSizeBytes;
 
   installAssistant-fetched = import <nix/fetchurl.nix> {
-    url = "https://swcdn.apple.com/content/downloads/05/02/062-78643-A_T7YK72IEUB/f6jf452yv3xah9gljv28yxjs5x5bm7p1fr/InstallAssistant.pkg";
-    sha256 = "sha256-ws8DcTvDD2+m5bo4Yk9xKsDl4ONEiInTFH3YhA9sBME=";
+    url =
+      "https://swcdn.apple.com/content/downloads/43/40/072-61299-A_Y6TZ03D5E8/dpzudbub2uj7lqy3cko50k4moqsu2lq5ui/InstallAssistant.pkg";
+    sha256 = "sha256-KMtjjuHW5c3x38SSedS5mrWX9u7KJNr1LJDbGIFpQrY=";
   };
 
-  installAssistant-iso = runCommand "InstallAssistant.iso" { buildInputs = [ cdrkit ]; } ''
-    cp --no-preserve=mode ${installAssistant-fetched} ./InstallAssistant.pkg
-    mkisofs -allow-limited-size -l -J -r -iso-level 3 -V InstallAssistant -o $out ./InstallAssistant.pkg
-  '';
+  installAssistant-iso =
+    runCommand "InstallAssistant.iso" { buildInputs = [ cdrkit ]; } ''
+      cp --no-preserve=mode ${installAssistant-fetched} ./InstallAssistant.pkg
+      mkisofs -allow-limited-size -l -J -r -iso-level 3 -V InstallAssistant -o $out ./InstallAssistant.pkg
+    '';
 
-  baseSystem-img = runCommand "BaseSystem.img" { nativeBuildInputs = [ python311 dmg2img qemu_kvm ];
+  baseSystem-img = runCommand "BaseSystem.img" {
+    nativeBuildInputs = [ python311 dmg2img qemu_kvm ];
     outputHashAlgo = "sha256";
     outputHash = "sha256-Qy9Whu8pqHo+m6wHnCIqURAR53LYQKc0r87g9eHgnS4=";
     outputHashMode = "recursive";
@@ -58,7 +64,9 @@ let
     cleaned_input=$(echo "$input" | sed 's/\\//g')
     echo Sending QEMU inputs for "$cleaned_input" >> qemuSendKeysLog
     sleep 10
-    ${ruby}/bin/ruby ${./sendkeys} "$cleaned_input" | ${socat}/bin/socat - unix-connect:qemu-monitor-socket
+    ${ruby}/bin/ruby ${
+      ./sendkeys
+    } "$cleaned_input" | ${socat}/bin/socat - unix-connect:qemu-monitor-socket
   '';
   vncdoWrapper = writeScript "vncdoWrapper" ''
     echo Sending VNC inputs for $1
@@ -89,132 +97,132 @@ let
     done
   '';
 
-
   # Expect scripts treat the first < as a special char, so need escapes like \\<
-  expectScript = let
-    sendUser = text: ''send_user "\n### NixThePlanet: ${text} ###\n"'';
-  in writeScript "expect.sh" ''
-    #!${expect}/bin/expect -f
-    set debug 2
-    set log_user 1
-    set timeout -1
-    exp_internal 0
+  expectScript =
+    let sendUser = text: ''send_user "\n### NixThePlanet: ${text} ###\n"'';
+    in writeScript "expect.sh" ''
+      #!${expect}/bin/expect -f
+      set debug 2
+      set log_user 1
+      set timeout -1
+      exp_internal 0
 
-    spawn ${tesseractScript}
-    expect "Continue"
-    exec ${qemuSendKeys} "\\<shift-meta_l-t>"
-    expect "Terminal"
-    expect "80x24"
-    exec ${qemuSendKeys} "sh /Volumes/run_offline/run_offline.sh<kp_enter>"
+      spawn ${tesseractScript}
+      expect "Continue"
+      exec ${qemuSendKeys} "\\<shift-meta_l-t>"
+      expect "Terminal"
+      expect "80x24"
+      exec ${qemuSendKeys} "sh /Volumes/run_offline/run_offline.sh<kp_enter>"
 
-    ${sendUser "Select Your Country or Region"}
-    expect "Select Your Country or Region"
-    exec ${qemuSendKeys} "united states<delay><shift-tab><delay><spc>"
+      ${sendUser "Select Your Country or Region"}
+      expect "Select Your Country or Region"
+      exec ${qemuSendKeys} "united states<delay><shift-tab><delay><spc>"
 
-    ${sendUser "Written and Spoken Languages"}
-    expect "Written and Spoken Languages"
-    exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
+      ${sendUser "Written and Spoken Languages"}
+      expect "Written and Spoken Languages"
+      exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
 
-    ${sendUser "Accessibility"}
-    expect "Accessibility"
-    exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
+      ${sendUser "Accessibility"}
+      expect "Accessibility"
+      exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
 
-    ${sendUser "How Do You Connect?"}
-    expect "How Do You Connect?"
-    exec ${qemuSendMouse} 815 480
-    exec sleep 10
-    exec ${qemuSendMouse} 1330 820
+      ${sendUser "How Do You Connect?"}
+      expect "How Do You Connect?"
+      exec ${qemuSendMouse} 815 480
+      exec sleep 10
+      exec ${qemuSendMouse} 1330 820
 
-    ${sendUser "Your Mac isn't connected to the internet"}
-    expect "Your Mac isn't connected to"
-    exec ${qemuSendMouse} 1020 640
+      ${sendUser "Your Mac isn't connected to the internet"}
+      expect "Your Mac isn't connected to"
+      exec ${qemuSendMouse} 1020 640
 
-    ${sendUser "Data & Privacy"}
-    expect "Data & Privacy"
-    exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
+      ${sendUser "Data & Privacy"}
+      expect "Data & Privacy"
+      exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
 
-    ${sendUser "Migration Assistant"}
-    expect "Migration Assistant"
-    exec ${qemuSendKeys} "\\<tab><delay><tab><delay><tab><delay><spc>"
+      ${sendUser "Migration Assistant"}
+      expect "Migration Assistant"
+      exec ${qemuSendKeys} "\\<tab><delay><tab><delay><tab><delay><spc>"
 
-    ## Not needed when offline
-    # expect "Sign In with Your Apple ID"
-    # exec ${vncdoWrapper} "Sign in with Your Apple ID" key shift-tab pause 10 key shift-tab pause 10 key space
-    # expect "Are you sure you want to skip"
-    # exec ${vncdoWrapper} "Are you sure you want to skip signing in with an Apple ID?" key tab pause 10 key space
-    # expect "Terms and Conditions"
+      ## Not needed when offline
+      # expect "Sign In with Your Apple ID"
+      # exec ${vncdoWrapper} "Sign in with Your Apple ID" key shift-tab pause 10 key shift-tab pause 10 key space
+      # expect "Are you sure you want to skip"
+      # exec ${vncdoWrapper} "Are you sure you want to skip signing in with an Apple ID?" key tab pause 10 key space
+      # expect "Terms and Conditions"
 
-    ${sendUser "Terms and Conditions"}
-    expect "Terms and Conditions"
-    exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
+      ${sendUser "Terms and Conditions"}
+      expect "Terms and Conditions"
+      exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
 
-    ${sendUser "I have read and agree to the macOS Software License Agreement."}
-    expect "Software License"
-    exec ${qemuSendKeys} "\\<tab><delay><spc>"
+      ${sendUser
+      "I have read and agree to the macOS Software License Agreement."}
+      expect "Software License"
+      exec ${qemuSendKeys} "\\<tab><delay><spc>"
 
-    ${sendUser "Create a Computer Account"}
-    expect "Create a Computer Account"
-    exec ${qemuSendKeys} "\\<delay>admin<delay><tab><delay>admin<delay><tab><delay>admin<delay><tab><delay>admin<delay><tab><delay><tab><delay><tab><delay><spc>"
+      ${sendUser "Create a Computer Account"}
+      expect "Create a Computer Account"
+      exec ${qemuSendKeys} "\\<delay>admin<delay><tab><delay>admin<delay><tab><delay>admin<delay><tab><delay>admin<delay><tab><delay><tab><delay><tab><delay><spc>"
 
-    ${sendUser "Enable Location Services"}
-    expect {
-      "Enable Location Services" {}
-      "account creation failed" {
-        puts "###############################################################"
-        puts "            ACCOUNT CREATION FAILED IN macOS VM"
-        puts "            Perhaps the VM is too slow? Try again."
-        puts "https://twitter.com/MatthewCroughan/status/1722665023338672230"
-        puts "###############################################################"
-        exit 1
+      ${sendUser "Enable Location Services"}
+      expect {
+        "Enable Location Services" {}
+        "account creation failed" {
+          puts "###############################################################"
+          puts "            ACCOUNT CREATION FAILED IN macOS VM"
+          puts "            Perhaps the VM is too slow? Try again."
+          puts "https://twitter.com/MatthewCroughan/status/1722665023338672230"
+          puts "###############################################################"
+          exit 1
+        }
       }
-    }
-    exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
+      exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
 
-    ${sendUser "Are you sure you don't want to use Location Services?"}
-    expect "Are you sure you don't want to"
-    exec ${qemuSendKeys} "\\<tab><delay><spc>"
+      ${sendUser "Are you sure you don't want to use Location Services?"}
+      expect "Are you sure you don't want to"
+      exec ${qemuSendKeys} "\\<tab><delay><spc>"
 
-    ${sendUser "Select Your Time Zone"}
-    expect "Select Your Time Zone"
-    exec ${qemuSendKeys} "\\<tab><delay>UTC<delay><kp_enter><delay><shift-tab><delay><spc>"
+      ${sendUser "Select Your Time Zone"}
+      expect "Select Your Time Zone"
+      exec ${qemuSendKeys} "\\<tab><delay>UTC<delay><kp_enter><delay><shift-tab><delay><spc>"
 
-    ${sendUser "Analytics"}
-    expect "Analytics"
-    exec ${qemuSendKeys} "\\<tab><delay><spc><delay><shift-tab><delay><spc>"
+      ${sendUser "Analytics"}
+      expect "Analytics"
+      exec ${qemuSendKeys} "\\<tab><delay><spc><delay><shift-tab><delay><spc>"
 
-    ${sendUser "Screen Time"}
-    ${sendUser "Waiting for iCloud status check to appear"}
-    expect -timeout 10 "iCloud Status"
-    expect "Screen Time"
-    ${sendUser "Waiting for iCloud status check to disappear"}
-    expect -re "^(?!.*Checking iCloud status).*$"
-    exec ${qemuSendKeys} "\\<tab><delay><spc>"
+      ${sendUser "Screen Time"}
+      ${sendUser "Waiting for iCloud status check to appear"}
+      expect -timeout 10 "iCloud Status"
+      expect "Screen Time"
+      ${sendUser "Waiting for iCloud status check to disappear"}
+      expect -re "^(?!.*Checking iCloud status).*$"
+      exec ${qemuSendKeys} "\\<tab><delay><spc>"
 
-    ${sendUser "Choose Your Look"}
-    expect "Choose Your Look"
-    exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
+      ${sendUser "Choose Your Look"}
+      expect "Choose Your Look"
+      exec ${qemuSendKeys} "\\<shift-tab><delay><spc>"
 
-    ${sendUser "Setting up SSH"}
-    expect "Keyboard Setup Assistant"
-    expect "Finder"
-    exec ${qemuSendMouse} 400 1035
-    expect "App Store"
-    exec ${qemuSendKeys} "terminal"
-    expect "Terminal"
-    exec ${qemuSendKeys} "\\<kp_enter>"
-    expect "80x24"
-    exec ${qemuSendKeys} "sudo sh -ec 'launchctl load -w /System/Library/LaunchDaemons/ssh.plist; while ! ssh-keyscan 127.0.0.1; do echo SSH Not Ready; done'<kp_enter>"
-    expect "Password"
-    exec ${qemuSendKeys} "admin<kp_enter>"
+      ${sendUser "Setting up SSH"}
+      expect "Keyboard Setup Assistant"
+      expect "Finder"
+      exec ${qemuSendMouse} 400 1035
+      expect "App Store"
+      exec ${qemuSendKeys} "terminal"
+      expect "Terminal"
+      exec ${qemuSendKeys} "\\<kp_enter>"
+      expect "80x24"
+      exec ${qemuSendKeys} "sudo sh -ec 'launchctl load -w /System/Library/LaunchDaemons/ssh.plist; while ! ssh-keyscan 127.0.0.1; do echo SSH Not Ready; done'<kp_enter>"
+      expect "Password"
+      exec ${qemuSendKeys} "admin<kp_enter>"
 
-    ${sendUser "OMG DID IT WORK???!!!!"}
-    exit 0
-  '';
+      ${sendUser "OMG DID IT WORK???!!!!"}
+      exit 0
+    '';
 
   runInVm = runCommand "mac_hdd_ng.qcow2" {
     passthru = rec {
       makeRunScript = callPackage ./run.nix;
-      runScript = makeRunScript {};
+      runScript = makeRunScript { };
     };
     buildInputs = [ qemu_kvm xorriso ];
     # __impure = true; # set __impure = true; if debugging and want to connect via VNC during the build
@@ -224,14 +232,18 @@ let
     cp -r --no-preserve=mode ${./osx-kvm-additions}/* ./osx-kvm
     cd ./osx-kvm
 
-    substituteInPlace scripts/run_offline.sh --replace '50000000000' "${toString diskSizeBytes}"
+    substituteInPlace scripts/run_offline.sh --replace '50000000000' "${
+      toString diskSizeBytes
+    }"
 
     mkdir x
     cp scripts/run_offline.sh x/run_offline.sh
     xorriso -volid run_offline -as mkisofs -o run_offline.iso x/
     qemu-img create -f qcow2 -b ${baseSystem-img} -F raw ./BaseSystem.qcow2
     qemu-img create -f qcow2 -b ${installAssistant-iso} -F raw ./InstallAssistant.qcow2
-    qemu-img create -f qcow2 ./mac_hdd_ng.qcow2 ${toString diskSize} # 50 Gigabytes, not Gibibytes
+    qemu-img create -f qcow2 ./mac_hdd_ng.qcow2 ${
+      toString diskSize
+    } # 50 Gigabytes, not Gibibytes
 
     # Stage 1 installs macOS to the hard drive from the InstallAssistant
     sh ./OpenCore-Boot.sh &
@@ -250,7 +262,8 @@ let
     ${powerOffWrapper}
     wait $openCoreBootPID
 
-    ${lib.optionalString repeatabilityTest "echo makeDarwinImage succeeded > $out; exit 0"}
+    ${lib.optionalString repeatabilityTest
+    "echo makeDarwinImage succeeded > $out; exit 0"}
     mv mac_hdd_ng.qcow2 $out
   '';
 in runInVm
