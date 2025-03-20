@@ -60,9 +60,30 @@
           makeWin30Image = pkgs.callPackage ./makeWin30Image {};
           makeWfwg311Image = pkgs.callPackage ./makeWfwg311Image {};
           makeWin98Image = pkgs.callPackage ./makeWin98Image {};
-#          makeSystem7Image = pkgs.callPackage ./makeSystem7Image {};
+          makeBlankHfsDisk = pkgs.callPackage ./makeBlankHfsDisk {};
+          makeSystem6Image = pkgs.callPackage ./makeSystem6Image {
+            minivmac = pkgs.minivmac.overrideAttrs {
+              configurePhase = ''
+                ${pkgs.lib.getExe' pkgs.buildPackages.stdenv.cc "cc"} setup/tool.c -o setup_t
+                ./setup_t -speed a -lt -lto udp -t lx64 > setup.sh
+                # Patch hardcoded references in setup.sh to cross-aware counterparts
+                substituteInPlace setup.sh --replace 'gcc ' '${pkgs.stdenv.cc.targetPrefix}cc '
+                substituteInPlace setup.sh --replace 'strip --strip-unneeded' '${pkgs.stdenv.cc.targetPrefix}strip --strip-unneeded'
+                sh < ./setup.sh
+              '';
+            };
+          };
+          makeSystem7Image = pkgs.callPackage ./makeSystem7Image {};
         };
         apps = {
+          system6 = {
+            type = "app";
+            program = config.packages.system6-image.runScript;
+          };
+          system7 = {
+            type = "app";
+            program = config.packages.system7-image.runScript;
+          };
           macos-ventura = {
             type = "app";
             program = config.packages.macos-ventura-image.runScript;
@@ -86,10 +107,13 @@
         };
         packages = rec {
           macos-ventura-image = config.legacyPackages.makeDarwinImage {};
+          blank-hfs-disk = config.legacyPackages.makeBlankHfsDisk {};
           msdos622-image = config.legacyPackages.makeMsDos622Image {};
           win30-image = config.legacyPackages.makeWin30Image {};
           wfwg311-image = config.legacyPackages.makeWfwg311Image {};
           win98-image = config.legacyPackages.makeWin98Image {};
+          system6-image = config.legacyPackages.makeSystem6Image {};
+          system7-image = config.legacyPackages.makeSystem7Image {};
           #system7-image = config.legacyPackages.makeSystem7Image {};
           #macos-repeatability-test = genOverridenDrvLinkFarm (macos-ventura-image.overrideAttrs { repeatabilityTest = true; }) 3;
           win98-repeatability-test = genOverridenDrvLinkFarm win98-image 100;
