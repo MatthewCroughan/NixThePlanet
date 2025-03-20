@@ -38,6 +38,38 @@
         "type": "indirect"
       }
     },
+    "haiku-buildtools-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1721548858,
+        "narHash": "sha256-YyaPhZnenjcpkm7bUjs8Jmp4QrQdR/HaBlU9w0Uysfw=",
+        "owner": "haiku",
+        "repo": "buildtools",
+        "rev": "d86b03dc2b1ffbf5361542719a03a701b2d7cbb4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "haiku",
+        "repo": "buildtools",
+        "type": "github"
+      }
+    },
+    "haiku-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1730315433,
+        "narHash": "sha256-SfSpOH7R3tH+sxIQZo8hhLWS6Z0zfH0+vQrTnADDrFk=",
+        "owner": "haiku",
+        "repo": "haiku",
+        "rev": "c65ff9f1e0a5b799459f3ad812dee13a289aa056",
+        "type": "github"
+      },
+      "original": {
+        "owner": "haiku",
+        "repo": "haiku",
+        "type": "github"
+      }
+    },
     "hercules-ci-effects": {
       "inputs": {
         "flake-parts": "flake-parts_2",
@@ -126,6 +158,8 @@
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
+        "haiku-buildtools-src": "haiku-buildtools-src",
+        "haiku-src": "haiku-src",
         "hercules-ci-effects": "hercules-ci-effects",
         "nixpkgs": "nixpkgs_2",
         "osx-kvm": "osx-kvm"

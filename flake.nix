@@ -1,5 +1,13 @@
 {
   inputs = {
+    haiku-src = {
+      url = "github:haiku/haiku";
+      flake = false;
+    };
+    haiku-buildtools-src = {
+      url = "github:haiku/buildtools";
+      flake = false;
+    };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
@@ -46,6 +54,9 @@
         };
         overlayAttrs = config.legacyPackages;
         legacyPackages = {
+          haiku-jam = pkgs.callPackage ./makeHaikuImage/haiku-jam.nix {
+            haiku-jam-src = inputs.haiku-buildtools-src + "/jam";
+          };
           inherit osx-kvm;
           makeDarwinImage = pkgs.callPackage ./makeDarwinImage {
             # substitute relative input with absolute input
@@ -85,6 +96,10 @@
           };
         };
         packages = rec {
+          haiku-image = pkgs.callPackage ./makeHaikuImage/haiku.nix {
+            haiku-src = inputs.haiku-src;
+            buildtools-src = inputs.haiku-buildtools-src;
+          };
           macos-ventura-image = config.legacyPackages.makeDarwinImage {};
           msdos622-image = config.legacyPackages.makeMsDos622Image {};
           win30-image = config.legacyPackages.makeWin30Image {};
