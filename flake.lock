@@ -41,11 +41,11 @@
     "haiku-buildtools-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1721548858,
-        "narHash": "sha256-YyaPhZnenjcpkm7bUjs8Jmp4QrQdR/HaBlU9w0Uysfw=",
+        "lastModified": 1737081147,
+        "narHash": "sha256-QjMSeNtLQyh/XFfEqemnUnlRYvirNa6l6sNKbrwQf48=",
         "owner": "haiku",
         "repo": "buildtools",
-        "rev": "d86b03dc2b1ffbf5361542719a03a701b2d7cbb4",
+        "rev": "7ab022f6e65571ab9e1054f62976a358652f3af8",
         "type": "github"
       },
       "original": {
@@ -57,16 +57,64 @@
     "haiku-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1730315433,
-        "narHash": "sha256-SfSpOH7R3tH+sxIQZo8hhLWS6Z0zfH0+vQrTnADDrFk=",
+        "lastModified": 1743235652,
+        "narHash": "sha256-OO59iyuYotyj/1Iqh1R9fKDWYWcAMifHAeup9xfu/sE=",
         "owner": "haiku",
         "repo": "haiku",
-        "rev": "c65ff9f1e0a5b799459f3ad812dee13a289aa056",
+        "rev": "c2aac25319469a8fe0220d8960601f35e6287ca1",
         "type": "github"
       },
       "original": {
         "owner": "haiku",
         "repo": "haiku",
+        "type": "github"
+      }
+    },
+    "haikuporter-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1743323930,
+        "narHash": "sha256-yzsvAgarYvcjls6kOthWYDheLiKKvXG9vtCJGrTQtVw=",
+        "owner": "haikuports",
+        "repo": "haikuporter",
+        "rev": "6c91e698740c32cdf40be2b150aa28f3dd5843e4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "haikuports",
+        "repo": "haikuporter",
+        "type": "github"
+      }
+    },
+    "haikuports-cross-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1729282022,
+        "narHash": "sha256-RR6jUOCrwzb6Ou/42pF0hlPdF+Pl73E3oHunY7GQV6U=",
+        "owner": "haikuports",
+        "repo": "haikuports.cross",
+        "rev": "6429d0f628a0546955c446f587e89c0c7be5525e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "haikuports",
+        "repo": "haikuports.cross",
+        "type": "github"
+      }
+    },
+    "haikuports-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1743428339,
+        "narHash": "sha256-/s/Nm4+jhmuSMar2s27zMmydZLTnKfb30ph7+fyiAOE=",
+        "owner": "haikuports",
+        "repo": "haikuports",
+        "rev": "72d7b09753d25f5f4dabbb6d20ae6a3023331fb7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "haikuports",
+        "repo": "haikuports",
         "type": "github"
       }
     },
@@ -125,11 +173,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1703255338,
-        "narHash": "sha256-Z6wfYJQKmDN9xciTwU3cOiOk+NElxdZwy/FiHctCzjU=",
+        "lastModified": 1743315132,
+        "narHash": "sha256-6hl6L/tRnwubHcA4pfUUtk542wn2Om+D4UnDhlDW9BE=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "6df37dc6a77654682fe9f071c62b4242b5342e04",
+        "rev": "52faf482a3889b7619003c0daec593a1912fddc1",
         "type": "github"
       },
       "original": {
@@ -160,6 +208,9 @@
         "flake-parts": "flake-parts",
         "haiku-buildtools-src": "haiku-buildtools-src",
         "haiku-src": "haiku-src",
+        "haikuporter-src": "haikuporter-src",
+        "haikuports-cross-src": "haikuports-cross-src",
+        "haikuports-src": "haikuports-src",
         "hercules-ci-effects": "hercules-ci-effects",
         "nixpkgs": "nixpkgs_2",
         "osx-kvm": "osx-kvm"

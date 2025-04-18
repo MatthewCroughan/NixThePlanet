@@ -8,6 +8,18 @@
       url = "github:haiku/buildtools";
       flake = false;
     };
+    haikuports-cross-src = {
+      url = "github:haikuports/haikuports.cross";
+      flake = false;
+    };
+    haikuports-src = {
+      url = "github:haikuports/haikuports";
+      flake = false;
+    };
+    haikuporter-src = {
+      url = "github:haikuports/haikuporter";
+      flake = false;
+    };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
@@ -99,6 +111,9 @@
           haiku-image = pkgs.callPackage ./makeHaikuImage/haiku.nix {
             haiku-src = inputs.haiku-src;
             buildtools-src = inputs.haiku-buildtools-src;
+            haikuports-src = inputs.haikuports-src;
+            haikuporter-src = inputs.haikuporter-src;
+            haikuports-cross-src = inputs.haikuports-cross-src;
           };
           macos-ventura-image = config.legacyPackages.makeDarwinImage {};
           msdos622-image = config.legacyPackages.makeMsDos622Image {};
