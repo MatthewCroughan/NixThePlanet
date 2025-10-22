@@ -20,14 +20,14 @@ in
     vncListenAddr = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1";
-      description = lib.mdDoc ''
+      description = ''
         Address to bind VNC (Virtual Desktop) to
       '';
     };
     vncDisplayNumber = lib.mkOption {
       type = lib.types.port;
       default = 0;
-      description = lib.mdDoc ''
+      description = ''
         Port to bind VNC (Virtual Desktop) to, added to 5900, e.g 1 means the
         VNC will run on port 5901
       '';
@@ -35,56 +35,56 @@ in
     sshListenAddr = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1";
-      description = lib.mdDoc ''
+      description = ''
         Address on which to listen for forwarding the VM port 22 to the host
       '';
     };
     sshPort = lib.mkOption {
       type = lib.types.port;
       default = 2222;
-      description = lib.mdDoc ''
+      description = ''
         Port to forward on the host to VM port 22
       '';
     };
     threads = lib.mkOption {
       type = lib.types.int;
       default = 4;
-      description = lib.mdDoc ''
+      description = ''
         Number of qemu CPU threads to assign
       '';
     };
     cores = lib.mkOption {
       type = lib.types.int;
       default = 2;
-      description = lib.mdDoc ''
+      description = ''
         Number of qemu CPU cores to assign
       '';
     };
     sockets = lib.mkOption {
       type = lib.types.int;
       default = 1;
-      description = lib.mdDoc ''
+      description = ''
         Number of qemu CPU sockets to assign
       '';
     };
     mem = lib.mkOption {
       type = lib.types.str;
       default = "4G";
-      description = lib.mdDoc ''
+      description = ''
         Amount of qemu memory to assign
       '';
     };
     extraQemuFlags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
-      description = lib.mdDoc ''
+      description = ''
         A list of extra flags to pass to qemu
       '';
     };
     stateless = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = lib.mdDoc ''
+      description = ''
         If set, all state will be removed on startup of the service, removing
         all data associated with the VM, giving you a fresh VM on each service
         start.
@@ -93,7 +93,7 @@ in
     createDiskImageIfNotExists = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = lib.mdDoc ''
+      description = ''
         After running macOS for the first time, you may disable this option.
         This will avoid running the installer again and creating new copies of macOS in the Nix store when a dependency of NixThePlanet changes in Nixpkgs.
         If `services.macos-ventura.stateless` is enabled, this option must also be enabled.
@@ -102,14 +102,14 @@ in
     openFirewall = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = lib.mdDoc ''
+      description = ''
         Whether to open the sshPort and vncDisplayNumber on the networking.firewall
       '';
     };
     autoStart = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = lib.mdDoc ''
+      description = ''
         Whether to automatically start the VM after booting the host machine.
       '';
     };
