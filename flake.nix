@@ -25,8 +25,8 @@
             imports = [ ./makeDarwinImage/module.nix ];
             nixpkgs.overlays = [
               (self: super: {
-                inherit (inputs.self.legacyPackages.${super.hostPlatform.system}) makeDarwinImage;
-                inherit (inputs.self.packages.${super.hostPlatform.system}) macos-ventura-image;
+                inherit (inputs.self.legacyPackages.${super.stdenv.hostPlatform.system}) makeDarwinImage;
+                inherit (inputs.self.packages.${super.stdenv.hostPlatform.system}) macos-ventura-image;
               })
             ];
           };
