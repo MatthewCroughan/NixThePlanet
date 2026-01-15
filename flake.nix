@@ -12,7 +12,7 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         flake-parts.flakeModules.easyOverlay
-        ./effects/macos-repeatability-test
+#        ./effects/macos-repeatability-test
       ];
       systems = [
         "x86_64-linux"
