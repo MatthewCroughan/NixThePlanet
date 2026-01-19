@@ -6,9 +6,9 @@ let
   diskSize = if diskSizeBytes < 40000000000 then throw "diskSizeBytes ${toString diskSizeBytes} too small for macOS" else diskSizeBytes;
 
   installAssistant-fetched = import <nix/fetchurl.nix> {
-    # Version 13.7.4 (22H420)
-    url = "https://swcdn.apple.com/content/downloads/08/22/072-83845-A_XJNKWES8K3/95bsibbbgdt0eyfr278z60061tw15x7g40/InstallAssistant.pkg";
-    sha256 = "sha256-iw7unRm3iKcwVbpJbQ740Fsg6rVAR88fDGXuB01zS9g=";
+    # Version 13.7.8 (22H730)
+    url = "https://swcdn.apple.com/content/downloads/09/46/093-22004-A_QNZEDC334I/phigx2zvoggml6sh79my4y51fnvgy8hix4/InstallAssistant.pkg";
+    sha256 = "sha256-WloZff6HV0EZv83RI9tWdhOZms1anTBMk2KAoxyw58I=";
   };
 
   installAssistant-iso = runCommand "InstallAssistant.iso" { buildInputs = [ cdrkit ]; } ''
